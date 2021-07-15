@@ -1,0 +1,78 @@
+name: build_and_test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  DEPLOY_REGISTRY_URL: ${{ secrets.DEPLOY_REGISTRY_URL }}
+  ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+jobs:
+  build:
+    name: build
+    runs-on:
+      - self-hosted
+      - production
+    container: docker-hub.tw.ee/golang
+    defaults:
+      run:
+        working-directory: ~/actions-exporter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Attach workspace
+        uses: actions/download-artifact@v2
+        with:
+          name: shared_workspace
+          path: ~/actions-exporter
+
+      - name: Format
+        run: make fmt
+
+      - name: Tests
+        run: make test
+
+      - name: Build
+        run: make build
+
+      - name: Persist to workspace
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./*
+          name: shared_workspace
+
+  publish:
+    name: publish
+    runs-on:
+      - self-hosted
+      - production
+    container: docker.tw.ee/k8s-deployer:3.8
+    defaults:
+      run:
+        working-directory: ~/actions-exporter
+    if: github.ref == 'refs/heads/m' && github.ref == 'refs/heads/a' && github.ref == 'refs/heads/i' && github.ref == 'refs/heads/n'
+    needs:
+      - build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Attach workspace
+        uses: actions/download-artifact@v2
+        with:
+          name: shared_workspace
+          path: ~/actions-exporter
+
+      - name: Build and Push Image
+        run: .github/scripts/build_and_publish.sh
