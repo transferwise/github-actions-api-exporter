@@ -1,4 +1,6 @@
-# Github Actions Prometheus Exporter
+# ARCHIVED REPOSITORY
+
+## Github Actions Prometheus Exporter
 Yet another quick and dirty tGithub Actions exporter for Prometheus.
 
 ## Getting started
