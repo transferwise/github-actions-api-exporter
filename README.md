@@ -1,5 +1,4 @@
 # ARCHIVED REPOSITORY
-This is the repository you are looking for: https://github.com/transferwise/actions-api-exporter
 
 ## Github Actions Prometheus Exporter
 Yet another quick and dirty tGithub Actions exporter for Prometheus.
